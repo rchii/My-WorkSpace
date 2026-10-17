@@ -1,0 +1,22 @@
+# Personal dashboard backups
+my-workspace-backup*.json
+*.backup.json
+
+# Local/private files
+.env
+.env.*
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+~$*
