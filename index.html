@@ -1481,7 +1481,20 @@ $("file").addEventListener("change", async e => {
     const backupFolderStore = parsed?.folderStore && typeof parsed.folderStore === "object" && !Array.isArray(parsed.folderStore)
       ? parsed.folderStore
       : folderStore;
+    // Normalize first, then recover every category from the backup before
+    // validating. Older v2 backups may contain categories such as Other,
+    // IRD, PMeV, Daily Tasks, etc. that are not in the clean starter list.
     const normalizedData = data.map(normalizeItem);
+    const backupCategories = normalizedData
+      .map(x => typeof x.category === "string" ? x.category.trim() : "")
+      .filter(Boolean);
+
+    mainFolders = [...new Set([
+      ...candidateMainFolders,
+      ...DEFAULT_MAIN_FOLDERS,
+      ...backupCategories
+    ])].filter(name => !backupDeletedFolders.includes(name));
+
     if (!normalizedData.every(validItem)) {
       throw new Error("Invalid backup");
     }
@@ -1495,11 +1508,8 @@ $("file").addEventListener("change", async e => {
       folderStore: JSON.parse(JSON.stringify(folderStore))
     };
 
-    mainFolders = [...new Set([
-      ...candidateMainFolders,
-      ...DEFAULT_MAIN_FOLDERS,
-      ...normalizedData.map(x => x.category).filter(Boolean)
-    ])].filter(name => !backupDeletedFolders.includes(name));
+    // Keep the category list recovered above; now apply deleted-folder state.
+    mainFolders = [...new Set(mainFolders)].filter(name => !backupDeletedFolders.includes(name));
     deletedMainFolders = [...new Set(backupDeletedFolders)];
     folderStore = JSON.parse(JSON.stringify(backupFolderStore));
     links = normalizedData;
